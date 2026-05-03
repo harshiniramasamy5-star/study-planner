@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 app = FastAPI()
 
-# Allow frontend to talk to backend
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,9 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# -----------------------------
-# Helper: Parse URL safely
-# -----------------------------
+
 def parse_url(url: str):
     if not url.startswith("http"):
         url = "http://" + url
@@ -27,9 +25,7 @@ def parse_url(url: str):
     return parsed.scheme, parsed.hostname, url
 
 
-# -----------------------------
-# Home route
-# -----------------------------
+
 @app.get("/")
 def home():
     return {
@@ -37,9 +33,7 @@ def home():
     }
 
 
-# -----------------------------
-# Main analyzer route
-# -----------------------------
+
 @app.get("/analyze")
 def analyze(url: str):
     try:
@@ -58,17 +52,13 @@ def analyze(url: str):
 
         total_start = time.time()
 
-        # -----------------------------
-        # 1. DNS Lookup
-        # -----------------------------
+     
         start = time.time()
         ip = socket.gethostbyname(host)
         result["ip"] = ip
         result["dns_time_ms"] = (time.time() - start) * 1000
 
-        # -----------------------------
-        # 2. TCP Connection
-        # -----------------------------
+     
         port = 443 if scheme == "https" else 80
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -76,9 +66,7 @@ def analyze(url: str):
         sock.connect((host, port))
         result["tcp_time_ms"] = (time.time() - start) * 1000
 
-        # -----------------------------
-        # 3. TLS Handshake (HTTPS only)
-        # -----------------------------
+       
         if scheme == "https":
             context = ssl.create_default_context()
 
@@ -89,16 +77,12 @@ def analyze(url: str):
         else:
             sock.close()
 
-        # -----------------------------
-        # 4. HTTP Request
-        # -----------------------------
+       
         start = time.time()
         requests.get(full_url)
         result["http_time_ms"] = (time.time() - start) * 1000
 
-        # -----------------------------
-        # Total time
-        # -----------------------------
+       
         result["total_time_ms"] = (time.time() - total_start) * 1000
 
         return result
